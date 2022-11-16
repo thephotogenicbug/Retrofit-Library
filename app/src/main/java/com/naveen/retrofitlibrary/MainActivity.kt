@@ -3,6 +3,8 @@ package com.naveen.retrofitlibrary
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.naveen.retrofitlibrary.databinding.ActivityMainBinding
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
@@ -15,12 +17,14 @@ class MainActivity : AppCompatActivity() {
 
     var postsList = ArrayList<Posts>()
 
+    lateinit var adapter: PostsAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainBinding = ActivityMainBinding.inflate(layoutInflater)
         val view = mainBinding.root
         setContentView(view)
-
+        mainBinding.recyclerView.layoutManager = LinearLayoutManager(this)
         showPosts()
     }
 
@@ -36,19 +40,17 @@ class MainActivity : AppCompatActivity() {
 
         call.enqueue(object : Callback<List<Posts>>{
             override fun onResponse(call: Call<List<Posts>>, response: Response<List<Posts>>) {
-                if(!response.isSuccessful){
-                    mainBinding.textViewUserId.text = "error"
-                    mainBinding.textViewId.text = "error"
-                    mainBinding.textViewTitle.text = "error"
-                    mainBinding.textViewBody.text = "error"
-                }
+               if(response.isSuccessful){
 
-                postsList = response.body() as ArrayList<Posts>
+                   mainBinding.progressBar.isVisible = false
+                   mainBinding.recyclerView.isVisible = true
 
-                mainBinding.textViewUserId.text = postsList[0].userId.toString()
-                mainBinding.textViewId.text = postsList[0].id.toString()
-                mainBinding.textViewTitle.text = postsList[0].title
-                mainBinding.textViewBody.text = postsList[0].subtitle
+                   postsList = response.body() as ArrayList<Posts>
+
+                   adapter = PostsAdapter(postsList)
+
+                   mainBinding.recyclerView.adapter = adapter
+               }
 
             }
 
